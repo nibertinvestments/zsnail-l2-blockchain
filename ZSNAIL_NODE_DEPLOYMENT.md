@@ -19,38 +19,43 @@
 
 ### Day 1-2: Google Cloud Setup & Basic Infrastructure
 
-#### Step 1: Create Production Google Cloud Project
+#### Step 1: Configure Existing Google Cloud Project
 
 ```bash
-# Create new GCP project for production
-gcloud projects create zsnail-l2-mainnet --name="ZSnail L2 Mainnet"
-gcloud config set project zsnail-l2-mainnet
+# Use existing ZSnail project (already configured in .env)
+gcloud config set project zsnail-blockchain
 
-# Enable required APIs
+# Enable additional APIs needed for blockchain node deployment
 gcloud services enable container.googleapis.com
 gcloud services enable compute.googleapis.com  
 gcloud services enable cloudsql.googleapis.com
 gcloud services enable monitoring.googleapis.com
 gcloud services enable logging.googleapis.com
+gcloud services enable storage.googleapis.com
+gcloud services enable dns.googleapis.com
 
-# Create service account for production
-gcloud iam service-accounts create zsnail-l2-prod \
-  --display-name="ZSnail L2 Production Service Account"
-
-# Grant necessary permissions
-gcloud projects add-iam-policy-binding zsnail-l2-mainnet \
-  --member="serviceAccount:zsnail-l2-prod@zsnail-l2-mainnet.iam.gserviceaccount.com" \
+# Grant additional permissions to existing service account for blockchain operations
+gcloud projects add-iam-policy-binding zsnail-blockchain \
+  --member="serviceAccount:zsnail-blockchain@zsnail-blockchain.iam.gserviceaccount.com" \
   --role="roles/container.admin"
 
-gcloud projects add-iam-policy-binding zsnail-l2-mainnet \
-  --member="serviceAccount:zsnail-l2-prod@zsnail-l2-mainnet.iam.gserviceaccount.com" \
+gcloud projects add-iam-policy-binding zsnail-blockchain \
+  --member="serviceAccount:zsnail-blockchain@zsnail-blockchain.iam.gserviceaccount.com" \
   --role="roles/cloudsql.admin"
+
+gcloud projects add-iam-policy-binding zsnail-blockchain \
+  --member="serviceAccount:zsnail-blockchain@zsnail-blockchain.iam.gserviceaccount.com" \
+  --role="roles/storage.admin"
+
+# Verify current project and service account
+gcloud config get-value project
+gcloud iam service-accounts list
 ```
 
 #### Step 2: Deploy Kubernetes Cluster
 
 ```bash
-# Create GKE cluster for ZSnail L2
+# Create GKE cluster for ZSnail L2 using existing project
 gcloud container clusters create zsnail-l2-cluster \
   --zone=us-central1-a \
   --machine-type=n2-standard-8 \
@@ -61,7 +66,8 @@ gcloud container clusters create zsnail-l2-cluster \
   --min-nodes=3 \
   --max-nodes=10 \
   --enable-autorepair \
-  --enable-autoupgrade
+  --enable-autoupgrade \
+  --service-account=zsnail-blockchain@zsnail-blockchain.iam.gserviceaccount.com
 
 # Get cluster credentials
 gcloud container clusters get-credentials zsnail-l2-cluster --zone=us-central1-a
@@ -74,7 +80,7 @@ kubectl config set-context --current --namespace=zsnail-l2
 #### Step 3: Deploy PostgreSQL Database
 
 ```bash
-# Create Cloud SQL instance for blockchain indexing
+# Create Cloud SQL instance for blockchain indexing using existing project
 gcloud sql instances create zsnail-blockchain-db \
   --database-version=POSTGRES_15 \
   --tier=db-custom-4-16384 \
@@ -126,7 +132,7 @@ class ZSnailSequencerNode {
     })
     
     this.storage = new GoogleCloudStorage({
-      bucket: 'zsnail-blockchain-storage',
+      bucket: 'zsnail-blockchain-storage', // Using existing GCS bucket
       path: 'mainnet-data'
     })
     
@@ -302,7 +308,7 @@ spec:
     spec:
       containers:
       - name: sequencer
-        image: gcr.io/zsnail-l2-mainnet/sequencer:latest
+        image: gcr.io/zsnail-blockchain/sequencer:latest
         ports:
         - containerPort: 8545
           name: rpc
@@ -357,10 +363,10 @@ spec:
 #### Step 6: Deploy Sequencer
 
 ```bash
-# Build and deploy sequencer
+# Build and deploy sequencer using existing project
 cd sequencer
-docker build -t gcr.io/zsnail-l2-mainnet/sequencer:latest .
-docker push gcr.io/zsnail-l2-mainnet/sequencer:latest
+docker build -t gcr.io/zsnail-blockchain/sequencer:latest .
+docker push gcr.io/zsnail-blockchain/sequencer:latest
 
 # Deploy to Kubernetes
 kubectl apply -f k8s/sequencer-deployment.yaml
@@ -934,7 +940,7 @@ spec:
     spec:
       containers:
       - name: explorer
-        image: gcr.io/zsnail-l2-mainnet/explorer:latest
+        image: gcr.io/zsnail-blockchain/explorer:latest
         ports:
         - containerPort: 3000
         env:
