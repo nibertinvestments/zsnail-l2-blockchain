@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add ZSnail L2 to MetaMask</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .network-info {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+        .label {
+            font-weight: bold;
+            color: #FFD700;
+        }
+        .value {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            word-break: break-all;
+        }
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            min-width: 200px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4CAF50;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #F44336;
+        }
+        .warning {
+            background: rgba(255, 193, 7, 0.3);
+            border: 2px solid #FFC107;
+            color: #333;
+        }
+        .actions {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐌 ZSnail L2 MetaMask Integration</h1>
+        
+        <div class="network-info">
+            <h2>🔗 Network Details</h2>
+            <div class="info-row">
+                <span class="label">Network Name:</span>
+                <span class="value">ZSnail L2 Proof of Work</span>
+            </div>
+            <div class="info-row">
+                <span class="label">RPC URL:</span>
+                <span class="value">http://localhost:8545</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Chain ID:</span>
+                <span class="value">66875 (0x1053b)</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Currency Symbol:</span>
+                <span class="value">ETH</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Block Explorer:</span>
+                <span class="value">http://localhost:8545/info</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Consensus:</span>
+                <span class="value">⛏️ Proof of Work</span>
+            </div>
+        </div>
+
+        <div class="stats" id="networkStats">
+            <div class="stat-card">
+                <div class="stat-value" id="blockNumber">Loading...</div>
+                <div>Current Block</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="difficulty">Loading...</div>
+                <div>Mining Difficulty</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="minerBalance">Loading...</div>
+                <div>Miner Balance</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalBlocks">Loading...</div>
+                <div>Total Blocks</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button onclick="addZSnailNetwork()">
+                <span class="emoji">🦊</span>Add to MetaMask
+            </button>
+            <button onclick="checkConnection()">
+                <span class="emoji">🔄</span>Test Connection
+            </button>
+            <button onclick="importWallet()">
+                <span class="emoji">👛</span>Import Miner Wallet
+            </button>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="network-info">
+            <h3>📋 Manual Setup Instructions</h3>
+            <p>If the automatic setup doesn't work, manually add these details to MetaMask:</p>
+            <ol>
+                <li>Open MetaMask extension</li>
+                <li>Click the network dropdown (usually shows "Ethereum Mainnet")</li>
+                <li>Click "Add network" or "Custom RPC"</li>
+                <li>Enter the network details shown above</li>
+                <li>Click "Save"</li>
+                <li>Import your wallet using the private key (see console for details)</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // ZSnail L2 Network Configuration
+        const ZSNAIL_NETWORK = {
+            chainId: '0x1053b', // 66875 in hex
+            chainName: 'ZSnail L2 Proof of Work',
+            nativeCurrency: {
+                name: 'Ethereum',
+                symbol: 'ETH',
+                decimals: 18
+            },
+            rpcUrls: ['http://localhost:8545'],
+            blockExplorerUrls: ['http://localhost:8545/info']
+        };
+
+        // Your miner wallet details
+        const MINER_WALLET = {
+            address: '0x9a36a3e13586f6b114aA78fD84b6fe6055f83b48',
+            privateKey: 'f987f1cc01cec30d87b39f96e4610ee3400646df76f631d2ddf244eec2f178b7'
+        };
+
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        async function addZSnailNetwork() {
+            if (typeof window.ethereum === 'undefined') {
+                showStatus('❌ MetaMask is not installed! Please install MetaMask first.', 'error');
+                return;
+            }
+
+            try {
+                showStatus('🔄 Adding ZSnail L2 network to MetaMask...', 'warning');
+                
+                // Request to add the network
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [ZSNAIL_NETWORK]
+                });
+                
+                showStatus('✅ ZSnail L2 network added successfully! You can now switch to it in MetaMask.', 'success');
+                
+                // Try to switch to the network
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: ZSNAIL_NETWORK.chainId }]
+                });
+                
+                showStatus('🎉 Successfully connected to ZSnail L2! You can now use MetaMask with your blockchain.', 'success');
+                
+            } catch (error) {
+                console.error('Failed to add network:', error);
+                if (error.code === 4902) {
+                    showStatus('⚠️ Network not added. Please add manually using the details above.', 'warning');
+                } else {
+                    showStatus(`❌ Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function checkConnection() {
+            try {
+                showStatus('🔄 Testing connection to ZSnail L2...', 'warning');
+                
+                const response = await fetch('http://localhost:8545/health');
+                const data = await response.json();
+                
+                if (data.status === 'healthy') {
+                    showStatus(`✅ ZSnail L2 is running! Block ${data.blockNumber}, Chain ID: ${data.chainId}`, 'success');
+                    updateStats();
+                } else {
+                    showStatus('❌ ZSnail L2 blockchain is not responding correctly.', 'error');
+                }
+            } catch (error) {
+                showStatus('❌ Cannot connect to ZSnail L2. Make sure the blockchain is running on localhost:8545.', 'error');
+            }
+        }
+
+        async function importWallet() {
+            if (typeof window.ethereum === 'undefined') {
+                showStatus('❌ MetaMask is not installed!', 'error');
+                return;
+            }
+
+            showStatus('📋 To import your miner wallet, follow these steps:<br>' +
+                      '1. Open MetaMask<br>' +
+                      '2. Click your account avatar<br>' +
+                      '3. Select "Import Account"<br>' +
+                      '4. Paste this private key: <br>' +
+                      '<code style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; display: block; margin: 10px 0;">' +
+                      MINER_WALLET.privateKey + '</code>' +
+                      '5. Click "Import"<br><br>' +
+                      '⚠️ <strong>SECURITY WARNING:</strong> Only use this private key on your local testnet!', 'warning');
+        }
+
+        async function updateStats() {
+            try {
+                const response = await fetch('http://localhost:8545/info');
+                const data = await response.json();
+                
+                document.getElementById('blockNumber').textContent = data.blockNumber || 'N/A';
+                document.getElementById('difficulty').textContent = data.difficulty || 'N/A';
+                document.getElementById('totalBlocks').textContent = data.totalBlocks || 'N/A';
+                
+                // Get miner balance
+                const balanceResponse = await fetch(`http://localhost:8545/wallet/${MINER_WALLET.address}`);
+                const balanceData = await balanceResponse.json();
+                document.getElementById('minerBalance').textContent = balanceData.balanceETH + ' ETH';
+                
+            } catch (error) {
+                console.error('Failed to update stats:', error);
+            }
+        }
+
+        // Auto-update stats every 10 seconds
+        setInterval(updateStats, 10000);
+        
+        // Initial load
+        window.addEventListener('load', () => {
+            checkConnection();
+            
+            // Log wallet details for easy access
+            console.log('🐌 ZSnail L2 Miner Wallet Details:');
+            console.log('Address:', MINER_WALLET.address);
+            console.log('Private Key:', MINER_WALLET.privateKey);
+            console.log('⚠️ Only use this private key on your local testnet!');
+        });
+    </script>
+</body>
+</html>

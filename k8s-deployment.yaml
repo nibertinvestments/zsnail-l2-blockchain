@@ -1,0 +1,134 @@
+# ZSnail L2 Blockchain Kubernetes Deployment with GCS Integration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zsnail-sequencer
+  namespace: zsnail-l2
+  labels:
+    app: zsnail-sequencer
+    version: v1.0.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zsnail-sequencer
+  template:
+    metadata:
+      labels:
+        app: zsnail-sequencer
+    spec:
+      containers:
+      - name: sequencer
+        image: gcr.io/zsnail-blockchain/zsnail-sequencer:latest
+        ports:
+        - containerPort: 8545
+          name: rpc
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "8545"
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/var/secrets/google/key.json"
+        - name: CONTRACTS_PATH
+          value: "/app/contracts"
+        - name: GCS_BUCKET_NAME
+          value: "zsnail-blockchain-storage"
+        - name: ZSNAIL_LIBRARIES_PATH
+          value: "/app/contracts/libraries"
+        - name: L2_CONTRACTS_PATH
+          value: "/app/contracts/l2-contracts"
+        - name: USE_ZSNAIL_LIBRARIES
+          value: "true"
+        volumeMounts:
+        - name: google-cloud-key
+          mountPath: /var/secrets/google
+          readOnly: true
+        - name: contracts-cache
+          mountPath: /app/contracts
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8545
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8545
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      - name: gcs-sync
+        image: google/cloud-sdk:alpine
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          echo "Initial sync of contracts from GCS bucket..."
+          gsutil -m rsync -r -d gs://zsnail-blockchain-storage/contracts/ /app/contracts/
+          echo "Initial sync completed."
+          while true; do
+            echo "Syncing contracts from GCS bucket..."
+            gsutil -m rsync -r -d gs://zsnail-blockchain-storage/contracts/ /app/contracts/
+            echo "Sync completed. Waiting 300 seconds..."
+            sleep 300
+          done
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/var/secrets/google/key.json"
+        volumeMounts:
+        - name: google-cloud-key
+          mountPath: /var/secrets/google
+          readOnly: true
+        - name: contracts-cache
+          mountPath: /app/contracts
+      volumes:
+      - name: google-cloud-key
+        secret:
+          secretName: google-cloud-key
+      - name: contracts-cache
+        emptyDir: {}
+---
+# LoadBalancer Service for Public Access
+apiVersion: v1
+kind: Service
+metadata:
+  name: zsnail-sequencer-service
+  namespace: zsnail-l2
+  labels:
+    app: zsnail-sequencer
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8545
+    targetPort: 8545
+    protocol: TCP
+    name: rpc
+  selector:
+    app: zsnail-sequencer
+---
+# Internal Service for Health Checks
+apiVersion: v1
+kind: Service
+metadata:
+  name: zsnail-sequencer-internal
+  namespace: zsnail-l2
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8545
+    targetPort: 8545
+    protocol: TCP
+  selector:
+    app: zsnail-sequencer
