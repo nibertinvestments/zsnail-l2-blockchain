@@ -7,6 +7,7 @@
 **Target Timeline**: 2 weeks (September 18 - October 2, 2025)
 
 **Critical Deliverables**:
+
 - ✅ Live blockchain with Chain ID: 42069
 - ✅ Public RPC: `https://rpc.zsnail.network`
 - ✅ Block Explorer: `https://explorer.zsnail.network`
@@ -60,7 +61,7 @@ gcloud container clusters create zsnail-l2-cluster \
   --zone=us-central1-a \
   --machine-type=n2-standard-8 \
   --num-nodes=3 \
-  --disk-size=500GB \
+  --disk-size=250GB \
   --disk-type=pd-ssd \
   --enable-autoscaling \
   --min-nodes=3 \
@@ -1034,6 +1035,7 @@ await window.ethereum.request({
 ```
 
 ## Quick Start
+
 ```bash
 # Test connection
 curl -X POST https://rpc.zsnail.network \
@@ -1048,11 +1050,13 @@ https://explorer.zsnail.network
 ```
 
 ## Why Build on ZSnail L2?
+
 - ⚡ **Fast**: 2-second block times
 - 💰 **Cheap**: ~$0.001 transaction costs  
 - 🔒 **Secure**: Optimistic rollup with fraud proofs
 - 🌐 **Compatible**: Full Ethereum compatibility
 - 🚀 **Ready**: Production infrastructure on Google Cloud
-```
 
+```text
 **🎯 RESULT: ZSnail L2 is now a live, functional blockchain that external developers can build on while you continue Phase 2 contract development!**
+```

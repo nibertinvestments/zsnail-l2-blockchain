@@ -590,6 +590,7 @@ Launch Checklist:
 **Target**: Live blockchain with RPC endpoints for external builders  
 
 **Why This Is Critical Now**:
+
 - Phase 2 contracts need a live blockchain to deploy to
 - External developers need RPC endpoints to build on ZSnail L2  
 - Cannot scale ecosystem without production infrastructure
@@ -602,12 +603,14 @@ Launch Checklist:
 ### Objective: Deploy Production ZSnail L2 Optimistic Rollup
 
 **Infrastructure Goals**:
+
 - **Live Blockchain**: Operational ZSnail L2 with unique chain ID
-- **Public RPC Endpoints**: https://rpc.zsnail.network for developers
+
+- **Public RPC Endpoints**: <https://rpc.zsnail.network> for developers
 - **Sequencer Network**: Decentralized transaction ordering
 - **Validator Network**: Fraud proof validation system  
 - **Bridge Contracts**: L1 ↔ L2 asset transfers
-- **Explorer**: https://explorer.zsnail.network for transparency
+- **Explorer**: <https://explorer.zsnail.network> for transparency
 
 ---
 
@@ -1396,10 +1399,14 @@ const deployed = await contract.deploy({ data: bytecode })
 ```
 
 ## Gas & Fees
+
 - **Gas Price**: ~1 gwei (0.000000001 ZETH)
 - **Average Transfer**: ~$0.001
 - **Contract Deployment**: ~$0.01-0.10
 - **Complex DeFi**: ~$0.01-0.05
+
+```bash
+# Gas optimization example
 ```
 
 ### Step 6B: Launch Announcement & Developer Onboarding
@@ -1497,22 +1504,26 @@ Total Development Cost:       ~$120,000 (6 weeks)
 ### Critical Success Metrics
 
 **Week 1-2 Targets**:
+
 - ✅ GKE cluster operational
 - ✅ Basic sequencer producing blocks
 - ✅ RPC endpoint responding to requests
 
-**Week 3-4 Targets**:  
+**Week 3-4 Targets**:
+
 - ✅ Validator network validating
 - ✅ L1 bridge contracts deployed
 - ✅ Cross-chain transfers working
 
 **Week 5-6 Targets**:
+
 - ✅ Block explorer live
 - ✅ Public RPC endpoints stable
 - ✅ Developer documentation complete
 - ✅ First external contracts deployed
 
 **Launch Success Metrics**:
+
 - **RPC Uptime**: 99.9%+
 - **Block Production**: Consistent 2-second blocks
 - **Gas Costs**: <$0.01 average transaction
@@ -1523,7 +1534,7 @@ Total Development Cost:       ~$120,000 (6 weeks)
 
 ## 🚨 IMMEDIATE NEXT STEPS
 
-### This Week (September 18-25, 2025):
+### This Week (September 18-25, 2025)
 
 1. **Set up Google Cloud Project** for ZSnail L2 production
 2. **Deploy GKE cluster** with basic configuration
@@ -1531,7 +1542,7 @@ Total Development Cost:       ~$120,000 (6 weeks)
 4. **Configure RPC endpoints** with load balancing
 5. **Deploy L1 rollup contracts** to Ethereum mainnet
 
-### Next Week (September 25-October 2, 2025):
+### Next Week (September 25-October 2, 2025)
 
 1. **Add validator network** with fraud proof validation
 2. **Implement bridge contracts** for ETH transfers

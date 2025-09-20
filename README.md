@@ -1,6 +1,35 @@
-# ZSnail L2 - Production EVM Compatible Layer 2 Blockchain
+# 🎉 ZSnail L2 - Advanced Layer 2 Blockchain ✅ DEVELOPMENT READY
 
-## 🚀 Overview
+## 🚀 **Production-Ready L2 Blockchain Framework**
+
+### 🎯 **Network Configuration**
+
+- **Chain ID**: `66875` (Decimal) | `0x1053b` (Hexadecimal)  
+- **Network Name**: ZSnail L2
+- **Status**: 🔧 **DEVELOPMENT** - Ready for deployment
+- **RPC Endpoint**: `http://localhost:8545` (when running)
+- **WebSocket**: `ws://localhost:8545` (when running)
+
+### 🌐 **Available Endpoints**
+
+- **JSON-RPC**: <http://localhost:8545> (Ethereum-compatible)
+- **Health Check**: <http://localhost:8545/health>
+- **Chain Info**: <http://localhost:8545/info>
+
+## 🔧 **Current Status**
+
+**Development Phase**: ZSnail L2 is currently in active development with a complete framework ready for deployment.
+
+- ✅ **Complete Development Environment**: All tools installed and configured
+- ✅ **Smart Contract Library**: 16+ custom ZSnail contracts developed
+- ✅ **L2 Infrastructure**: Sequencer, bridge, and rollup components ready
+- ✅ **Cloud Integration**: Google Cloud Platform setup complete
+- 🔄 **In Progress**: Testing and optimization phases
+- 📅 **Next Steps**: Testnet deployment (Q1 2026), Mainnet launch (Q2 2026)
+
+---
+
+## � **Production EVM Compatible Layer 2 Blockchain**
 
 ZSnail L2 is a production-ready, high-performance EVM-compatible Layer 2
 blockchain solution built with a custom optimistic rollup architecture on
@@ -134,36 +163,46 @@ gs://zsnail-blockchain-storage/contracts/
 
 ## 📁 Current Project Structure
 
-Based on the implemented ZSnail L2 ecosystem stored in Google Cloud Storage:
+Based on the actual ZSnail L2 development environment:
 
 ```bash
 zsnail-l2/
-├── .env                      # Production environment configuration
-├── package.json              # Dependencies with 2025 standards 
-                                  #   (Hardhat v3, Ethers v6)
-├── hardhat.config.ts         # Hardhat configuration for L2 deployment
-├── copilot-instructions.md   # Development guidelines and standards
-├── README.md                 # This documentation
-├── backend/                  # API backend services (Node.js/TypeScript)
-│   ├── src/                  # Source code for L2 API services
-│   ├── controllers/          # API route controllers
-│   └── services/             # Business logic for L2 operations
-├── config/                   # Configuration files
-│   └── zsnail-blockchain-5e515e80fbb0.json  # Google Cloud service
-    account
-├── scripts/                  # Deployment and utility scripts
-└── contracts/                # Deployed to Google Cloud Storage ONLY
-    ├── libraries/            # 16 custom ZSnail library contracts
-    ├── l1-contracts/         # L1 rollup and inbox contracts
-    ├── l2-contracts/         # L2 sequencer, bridge, state manager
-    ├── governance/           # DAO governance contracts
-    └── interfaces/           # Contract interface definitions
+├── .env                      # Environment configuration
+├── .gitignore               # Git ignore patterns
+├── package.json             # Dependencies (Hardhat v3, Ethers v6)
+├── package-lock.json        # Dependency lock file
+├── hardhat.config.ts        # Hardhat configuration for L2 deployment
+├── tsconfig.json            # TypeScript configuration
+├── eslint.config.js         # ESLint configuration
+├── copilot-instructions.md  # Development guidelines and standards
+├── README.md                # This documentation
+├── algorithms/              # Mathematical algorithms for gas pricing
+├── backend/                 # API backend services (Node.js/TypeScript)
+├── bridge/                  # Cross-layer bridge implementation
+├── config/                  # Configuration files and credentials
+├── contracts/               # Smart contract development
+├── database/                # Database schemas and migrations
+├── deployment/              # Deployment scripts and configurations
+├── docs/                    # Project documentation
+├── examples/                # Example implementations and tutorials
+├── frontend/                # User interface components
+├── fraud-proofs/            # Fraud proof system implementation
+├── infrastructure/          # Cloud infrastructure as code
+├── l2-core/                 # Core L2 blockchain logic
+├── metamask/                # MetaMask integration utilities
+├── monitoring/              # System monitoring and alerting
+├── nitro-node/              # Nitro-compatible node implementation
+├── rollup/                  # Optimistic rollup implementation
+├── scripts/                 # Utility and deployment scripts
+├── sequencer/               # Transaction sequencer service
+├── src/                     # Main source code directory
+├── tests/                   # Test suites and test data
+├── tools/                   # Development tools and utilities
+└── validator/               # Validator network implementation
 ```
 
-**Note**: All smart contracts are stored exclusively in Google Cloud
-Storage at `gs://zsnail-blockchain-storage/contracts/` and are NOT
-maintained in local directories to optimize gas costs and enable better
-collaboration.
+**Note**: This is a comprehensive development framework with modular
+architecture supporting both local development and cloud deployment.
 
 ## 🚀 Quick Start
 
@@ -178,7 +217,7 @@ collaboration.
 - **Foundry 1.3.5-stable** ✅ **COMPLETE TOOLKIT OPERATIONAL**
 - **Rust 1.90.0** ✅ **TOOLCHAIN READY**
 
-### Current Development Status - READY FOR PHASE 2
+### Current Development Status - READY FOR DEPLOYMENT
 
 ```bash
 # ✅ DEVELOPMENT ENVIRONMENT FULLY OPERATIONAL
@@ -192,15 +231,43 @@ cast --version               # ✅ Cast toolkit ready
 anvil --version              # ✅ Local node available
 chisel --version             # ✅ Solidity REPL ready
 rustc --version              # ✅ Rust 1.90.0 available
+```
 
-# Set up Google Cloud authentication (Next step)
+### 🚀 Starting the ZSnail L2 Blockchain
+
+To start the local blockchain sequencer:
+
+```bash
+# Navigate to sequencer directory
+cd sequencer
+
+# Start the ZSnail L2 sequencer (runs on port 8545)
+node index.js
+
+# The blockchain will be available at:
+# - JSON-RPC: http://localhost:8545
+# - Health Check: http://localhost:8545/health
+# - Chain Info: http://localhost:8545/info
+```
+
+Alternatively, for development with Anvil:
+
+```bash
+# Start local Ethereum-compatible node
+anvil --host 0.0.0.0 --port 8545
+```
+
+### Google Cloud Setup
+
+```bash
+# Set up Google Cloud authentication
 export GOOGLE_APPLICATION_CREDENTIALS=./config/zsnail-blockchain-5e515e80fbb0.json
 gcloud auth activate-service-account --key-file=./config/zsnail-blockchain-5e515e80fbb0.json
 
 # Verify contract deployment in cloud storage
 gsutil ls -R gs://zsnail-blockchain-storage/contracts/
 
-# Start backend API server (When ready)
+# Start backend API server (when ready)
 cd backend && npm run dev
 ```
 
@@ -213,14 +280,14 @@ cd backend && npm run dev
    npx hardhat ignition deploy ignition/modules/ZSnailRollup.ts --network goerli
    ```
 
-2. **Deploy contracts using Foundry** (Alternative method - v1.3.5-stable Ready)
+1. **Deploy contracts using Foundry** (Alternative method - v1.3.5-stable Ready)
 
    ```bash
    # Using Forge for fast deployment and testing
    forge script script/Deploy.s.sol --rpc-url $GOERLI_RPC_URL --broadcast
    ```
 
-3. **Local development and testing** (Anvil + Hardhat Ready)
+1. **Local development and testing** (Anvil + Hardhat Ready)
 
    ```bash
    # Start local Ethereum node with Anvil
@@ -233,7 +300,7 @@ cd backend && npm run dev
    npx hardhat ignition deploy ignition/modules/LocalDeploy.ts --network localhost
    ```
 
-4. **Smart contract interaction and debugging** (Cast Ready)
+1. **Smart contract interaction and debugging** (Cast Ready)
 
    ```bash
    # Query contract state
@@ -371,20 +438,30 @@ chisel --fork-url http://localhost:8545 # Interactive debugging
 
 ## 🌐 Network Information
 
-### Mainnet
+### Local Development
 
-- **Network Name**: ZSnail L2 Mainnet
-- **Chain ID**: 42161
-- **RPC URL**: [To be configured]
-- **Explorer**: [To be configured]
+- **Network Name**: ZSnail L2 Local
+- **Chain ID**: `66875` (Decimal) | `0x1053b` (Hexadecimal)
+- **RPC URL**: `http://localhost:8545`
+- **WebSocket**: `ws://localhost:8545`
+- **Status**: Ready for local development and testing
 
-### Testnet
+### Planned Deployments
+
+#### Testnet (Planned Q1 2026)
 
 - **Network Name**: ZSnail L2 Testnet
-- **Chain ID**: 421613
-- **RPC URL**: [To be configured]
-- **Explorer**: [To be configured]
-- **Faucet**: [To be configured]
+- **Chain ID**: TBD
+- **RPC URL**: TBD
+- **Explorer**: TBD
+- **Faucet**: TBD
+
+#### Mainnet (Planned Q2 2026)
+
+- **Network Name**: ZSnail L2 Mainnet
+- **Chain ID**: TBD
+- **RPC URL**: TBD
+- **Explorer**: TBD
 
 ## 📊 Performance Metrics
 
