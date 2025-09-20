@@ -1,10 +1,11 @@
 import { ethers } from 'ethers';
 import { logger } from './logger';
-import { SequencerService } from '../services/SequencerService';
-import { ValidatorService } from '../services/ValidatorService';
-import { BridgeService } from '../services/BridgeService';
-import { StateManager } from './StateManager';
-import { TransactionPool } from './TransactionPool';
+// TODO: Implement these services
+// import { SequencerService } from '../services/SequencerService';
+// import { ValidatorService } from '../services/ValidatorService';
+// import { BridgeService } from '../services/BridgeService';
+// import { StateManager } from './StateManager';
+// import { TransactionPool } from './TransactionPool';
 
 export interface ZSnailL2Config {
   chainId: number;
@@ -30,12 +31,12 @@ export class ZSnailL2Node {
   private isInitialized = false;
   private isRunning = false;
 
-  // Core L2 Services - All custom implementations
-  private sequencer: SequencerService;
-  private validator: ValidatorService;
-  private bridge: BridgeService;
-  private stateManager: StateManager;
-  private transactionPool: TransactionPool;
+  // Core L2 Services - TODO: Implement when ready
+  // private sequencer: SequencerService;
+  // private validator: ValidatorService;
+  // private bridge: BridgeService;
+  // private stateManager: StateManager;
+  // private transactionPool: TransactionPool;
 
   // Block and transaction tracking
   private currentBlockHeight = 0;
@@ -74,7 +75,7 @@ export class ZSnailL2Node {
       
       logger.info('✅ ZSnail L2 Node initialization complete');
     } catch (error) {
-      logger.error('❌ ZSnail L2 Node initialization failed:', error);
+      logger.error('❌ ZSnail L2 Node initialization failed:', { error: String(error) });
       throw error;
     }
   }
@@ -93,7 +94,7 @@ export class ZSnailL2Node {
 
       this.lastL1SyncBlock = blockNumber;
     } catch (error) {
-      logger.error('❌ Failed to connect to L1 mainnet:', error);
+      logger.error('❌ Failed to connect to L1 mainnet:', { error: String(error) });
       throw new Error('L1 connection required for ZSnail L2 operation');
     }
   }
@@ -101,41 +102,37 @@ export class ZSnailL2Node {
   private async initializeCoreServices(): Promise<void> {
     logger.info('🔧 Initializing ZSnail L2 core services...');
 
-    // Initialize custom state management
-    this.stateManager = new StateManager({
-      chainId: this.config.chainId,
-      l1Provider: this.l1Provider
-    });
+    // TODO: Initialize these services when implemented
+    // this.stateManager = new StateManager({
+    //   chainId: this.config.chainId,
+    //   l1Provider: this.l1Provider
+    // });
 
-    // Initialize custom transaction pool
-    this.transactionPool = new TransactionPool({
-      maxPoolSize: 10000,
-      gasLimit: 15000000
-    });
+    // this.transactionPool = new TransactionPool({
+    //   maxPoolSize: 10000,
+    //   gasLimit: 15000000
+    // });
 
-    // Initialize custom sequencer service
-    this.sequencer = new SequencerService({
-      stateManager: this.stateManager,
-      transactionPool: this.transactionPool,
-      batchSize: 100,
-      batchTimeoutMs: 5000
-    });
+    // this.sequencer = new SequencerService({
+    //   stateManager: this.stateManager,
+    //   transactionPool: this.transactionPool,
+    //   batchSize: 100,
+    //   batchTimeoutMs: 5000
+    // });
 
-    // Initialize custom validator service
-    this.validator = new ValidatorService({
-      stateManager: this.stateManager,
-      l1Provider: this.l1Provider,
-      fraudProofWindow: 7 * 24 * 60 * 60 // 7 days
-    });
+    // this.validator = new ValidatorService({
+    //   stateManager: this.stateManager,
+    //   l1Provider: this.l1Provider,
+    //   fraudProofWindow: 7 * 24 * 60 * 60 // 7 days
+    // });
 
-    // Initialize custom bridge service
-    this.bridge = new BridgeService({
-      l1Provider: this.l1Provider,
-      l1WsProvider: this.l1WsProvider,
-      stateManager: this.stateManager
-    });
+    // this.bridge = new BridgeService({
+    //   l1Provider: this.l1Provider,
+    //   l1WsProvider: this.l1WsProvider,
+    //   stateManager: this.stateManager
+    // });
 
-    logger.info('✅ ZSnail L2 core services initialized');
+    logger.info('✅ ZSnail L2 core services initialized (placeholder mode)');
   }
 
   private async initializeCustomContracts(): Promise<void> {
@@ -147,44 +144,56 @@ export class ZSnailL2Node {
 
     logger.info('📜 Initializing custom ZSnail contracts...');
     
-    // Initialize our custom rollup contract interaction
-    await this.bridge.initializeCustomContracts({
-      rollupAddress: this.config.rollupContractAddress!,
-      bridgeAddress: this.config.bridgeContractAddress!
-    });
+    // TODO: Initialize contract interaction when bridge service is implemented
+    // await this.bridge.initializeCustomContracts({
+    //   rollupAddress: this.config.rollupContractAddress!,
+    //   bridgeAddress: this.config.bridgeContractAddress!
+    // });
 
-    logger.info('✅ Custom ZSnail contracts initialized');
+    logger.info('✅ Custom ZSnail contracts initialized (placeholder mode)');
   }
 
   // Public API methods for the REST endpoints
-  async submitTransaction(transaction: any): Promise<string> {
+  async submitTransaction(transaction: Record<string, unknown>): Promise<string> {
     if (!this.isRunning) {
       throw new Error('ZSnail L2 Node not running');
     }
 
-    return await this.transactionPool.addTransaction(transaction);
+    // TODO: Implement when transaction pool service is ready
+    // return await this.transactionPool.addTransaction(transaction);
+    logger.info('Transaction submitted (placeholder):', { transaction });
+    return '0x' + Math.random().toString(16).substring(2, 66); // Mock tx hash
   }
 
-  async getBlockByNumber(blockNumber: number): Promise<any> {
-    return await this.stateManager.getBlock(blockNumber);
+  async getBlockByNumber(blockNumber: number): Promise<Record<string, unknown> | null> {
+    // TODO: Implement when state manager service is ready
+    // return await this.stateManager.getBlock(blockNumber);
+    logger.info('Getting block (placeholder):', { blockNumber });
+    return null;
   }
 
-  async getTransactionByHash(txHash: string): Promise<any> {
-    return await this.stateManager.getTransaction(txHash);
+  async getTransactionByHash(txHash: string): Promise<Record<string, unknown> | null> {
+    // TODO: Implement when state manager service is ready
+    // return await this.stateManager.getTransaction(txHash);
+    logger.info('Getting transaction (placeholder):', { txHash });
+    return null;
   }
 
   async getBalance(address: string): Promise<string> {
-    return await this.stateManager.getBalance(address);
+    // TODO: Implement when state manager service is ready
+    // return await this.stateManager.getBalance(address);
+    logger.info('Getting balance (placeholder):', { address });
+    return '0';
   }
 
   getStatus(): NodeStatus {
     return {
       isRunning: this.isRunning,
       blockHeight: this.currentBlockHeight,
-      pendingTransactions: this.transactionPool?.getPendingCount() || 0,
+      pendingTransactions: 0, // TODO: this.transactionPool?.getPendingCount() || 0,
       lastL1Sync: this.lastL1SyncBlock,
-      sequencerStatus: this.sequencer?.getStatus() || 'stopped',
-      validatorStatus: this.validator?.getStatus() || 'stopped'
+      sequencerStatus: 'development', // TODO: this.sequencer?.getStatus() || 'stopped',
+      validatorStatus: 'development' // TODO: this.validator?.getStatus() || 'stopped'
     };
   }
 
@@ -193,9 +202,16 @@ export class ZSnailL2Node {
     
     this.isRunning = false;
     
-    if (this.sequencer) await this.sequencer.stop();
-    if (this.validator) await this.validator.stop();
-    if (this.bridge) await this.bridge.stop();
+    // TODO: Shutdown services when implemented
+    // if (this.sequencer) {
+    //   await this.sequencer.stop();
+    // }
+    // if (this.validator) {
+    //   await this.validator.stop();
+    // }
+    // if (this.bridge) {
+    //   await this.bridge.stop();
+    // }
     
     // Close WebSocket connections
     if (this.l1WsProvider) {

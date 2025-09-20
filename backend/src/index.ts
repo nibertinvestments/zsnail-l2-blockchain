@@ -1,6 +1,5 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { ethers } from 'ethers';
 import { ZSnailL2Node } from './core/ZSnailL2Node';
 import { apiRoutes } from './api/routes';
 import { logger } from './core/logger';
@@ -22,19 +21,24 @@ async function initializeZSnailNode() {
   try {
     logger.info('🚀 Initializing ZSnail L2 Blockchain Node...');
     
+    // Validate required environment variables
+    if (!process.env.L1_RPC_URL || !process.env.L1_WS_URL) {
+      throw new Error('Missing required environment variables: L1_RPC_URL and L1_WS_URL must be set');
+    }
+    
     // Initialize our custom L2 node with real configuration
     zsnailNode = new ZSnailL2Node({
-      chainId: parseInt(process.env.L2_CHAIN_ID || '42161'),
+      chainId: parseInt(process.env.ZSNAIL_CHAIN_ID || '66875'),
       l1RpcUrl: process.env.L1_RPC_URL!,
       l1WsUrl: process.env.L1_WS_URL!,
-      rollupContractAddress: process.env.ROLLUP_CONTRACT_ADDRESS,
-      bridgeContractAddress: process.env.BRIDGE_CONTRACT_ADDRESS,
+      rollupContractAddress: process.env.ROLLUP_CONTRACT_ADDRESS || undefined,
+      bridgeContractAddress: process.env.BRIDGE_CONTRACT_ADDRESS || undefined,
     });
 
     await zsnailNode.initialize();
     logger.info('✅ ZSnail L2 Node initialized successfully');
   } catch (error) {
-    logger.error('❌ Failed to initialize ZSnail L2 Node:', error);
+    logger.error('❌ Failed to initialize ZSnail L2 Node:', { error: String(error) });
     process.exit(1);
   }
 }
@@ -47,7 +51,7 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    chainId: process.env.L2_CHAIN_ID,
+    chainId: process.env.ZSNAIL_CHAIN_ID,
     network: process.env.NETWORK,
     nodeStatus: zsnailNode?.getStatus() || 'initializing'
   });
@@ -64,7 +68,7 @@ async function startServer() {
       logger.info(`🔗 API endpoint: http://localhost:${PORT}/api/v1`);
     });
   } catch (error) {
-    logger.error('❌ Failed to start ZSnail L2 Node:', error);
+    logger.error('❌ Failed to start ZSnail L2 Node:', { error: String(error) });
     process.exit(1);
   }
 }

@@ -34,61 +34,61 @@ router.post('/rpc', async (req, res) => {
 
     // Handle standard Ethereum JSON-RPC methods for our custom L2
     switch (method) {
-      case 'eth_chainId':
-        res.json({
-          jsonrpc: '2.0',
-          id,
-          result: `0x${parseInt(process.env.L2_CHAIN_ID || '42161').toString(16)}`
-        });
-        break;
+    case 'eth_chainId':
+      res.json({
+        jsonrpc: '2.0',
+        id,
+        result: `0x${parseInt(process.env.L2_CHAIN_ID || '42161').toString(16)}`
+      });
+      break;
 
-      case 'eth_blockNumber':
-        // TODO: Get from our custom ZSnail node
-        res.json({
-          jsonrpc: '2.0',
-          id,
-          result: '0x0' // Placeholder - will connect to ZSnail node
-        });
-        break;
+    case 'eth_blockNumber':
+      // TODO: Get from our custom ZSnail node
+      res.json({
+        jsonrpc: '2.0',
+        id,
+        result: '0x0' // Placeholder - will connect to ZSnail node
+      });
+      break;
 
-      case 'eth_getBalance':
-        // TODO: Get from our custom state manager
-        res.json({
-          jsonrpc: '2.0',
-          id,
-          result: '0x0' // Placeholder - will connect to ZSnail node
-        });
-        break;
+    case 'eth_getBalance':
+      // TODO: Get from our custom state manager
+      res.json({
+        jsonrpc: '2.0',
+        id,
+        result: '0x0' // Placeholder - will connect to ZSnail node
+      });
+      break;
 
-      case 'eth_sendRawTransaction':
-        // TODO: Submit to our custom transaction pool
-        res.json({
-          jsonrpc: '2.0',
-          id,
-          result: '0x' + '0'.repeat(64) // Placeholder transaction hash
-        });
-        break;
+    case 'eth_sendRawTransaction':
+      // TODO: Submit to our custom transaction pool
+      res.json({
+        jsonrpc: '2.0',
+        id,
+        result: '0x' + '0'.repeat(64) // Placeholder transaction hash
+      });
+      break;
 
-      case 'net_version':
-        res.json({
-          jsonrpc: '2.0',
-          id,
-          result: process.env.L2_CHAIN_ID || '42161'
-        });
-        break;
+    case 'net_version':
+      res.json({
+        jsonrpc: '2.0',
+        id,
+        result: process.env.L2_CHAIN_ID || '42161'
+      });
+      break;
 
-      default:
-        res.status(400).json({
-          jsonrpc: '2.0',
-          id,
-          error: {
-            code: -32601,
-            message: `Method ${method} not supported by ZSnail L2`
-          }
-        });
+    default:
+      res.status(400).json({
+        jsonrpc: '2.0',
+        id,
+        error: {
+          code: -32601,
+          message: `Method ${method} not supported by ZSnail L2`
+        }
+      });
     }
   } catch (error) {
-    logger.error('RPC Error:', error);
+    logger.error('RPC Error:', { error: String(error) });
     res.status(500).json({
       jsonrpc: '2.0',
       id: req.body.id || null,
@@ -106,7 +106,7 @@ router.get('/tx/:hash', async (req, res) => {
     const { hash } = req.params;
     
     // TODO: Get from our custom ZSnail state manager
-    logger.debug('Getting transaction:', hash);
+    logger.debug('Getting transaction:', { hash });
     
     res.json({
       status: 'pending',
@@ -114,7 +114,7 @@ router.get('/tx/:hash', async (req, res) => {
       hash
     });
   } catch (error) {
-    logger.error('Error getting transaction:', error);
+    logger.error('Error getting transaction:', { error: String(error) });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -125,7 +125,7 @@ router.get('/block/:number', async (req, res) => {
     const { number } = req.params;
     
     // TODO: Get from our custom ZSnail blockchain
-    logger.debug('Getting block:', number);
+    logger.debug('Getting block:', { number });
     
     res.json({
       status: 'pending',
@@ -133,7 +133,7 @@ router.get('/block/:number', async (req, res) => {
       blockNumber: number
     });
   } catch (error) {
-    logger.error('Error getting block:', error);
+    logger.error('Error getting block:', { error: String(error) });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -152,7 +152,7 @@ router.post('/tx/submit', async (req, res) => {
       txHash: '0x' + '0'.repeat(64) // Placeholder
     });
   } catch (error) {
-    logger.error('Error submitting transaction:', error);
+    logger.error('Error submitting transaction:', { error: String(error) });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -172,7 +172,7 @@ router.post('/bridge/deposit', async (req, res) => {
       l2TxHash: '0x' + '0'.repeat(64) // Placeholder
     });
   } catch (error) {
-    logger.error('Error processing deposit:', error);
+    logger.error('Error processing deposit:', { error: String(error) });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -190,7 +190,7 @@ router.post('/bridge/withdraw', async (req, res) => {
       withdrawalId: '0x' + '0'.repeat(64) // Placeholder
     });
   } catch (error) {
-    logger.error('Error processing withdrawal:', error);
+    logger.error('Error processing withdrawal:', { error: String(error) });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
