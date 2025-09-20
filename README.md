@@ -1,31 +1,110 @@
-# 🎉 ZSnail L2 - Advanced Layer 2 Blockchain ✅ DEVELOPMENT READY
+# 🎉 ZSnail L2 - Advanced Layer 2 Blockchain ✅ LIVE & OPERATIONAL
 
-## 🚀 **Production-Ready L2 Blockchain Framework**
+## 🚀 **Live Production L2 Blockchain**
 
 ### 🎯 **Network Configuration**
 
 - **Chain ID**: `66875` (Decimal) | `0x1053b` (Hexadecimal)  
 - **Network Name**: ZSnail L2
-- **Status**: 🔧 **DEVELOPMENT** - Ready for deployment
-- **RPC Endpoint**: `http://localhost:8545` (when running)
-- **WebSocket**: `ws://localhost:8545` (when running)
+- **Status**: � **LIVE** - Production blockchain operational
+- **External RPC**: `http://34.122.156.185:8545` 🌐 **CONNECT NOW**
+- **WebSocket**: `ws://34.122.156.185:8545`
 
-### 🌐 **Available Endpoints**
+### 🌐 **Live Endpoints for Developers**
 
-- **JSON-RPC**: <http://localhost:8545> (Ethereum-compatible)
-- **Health Check**: <http://localhost:8545/health>
-- **Chain Info**: <http://localhost:8545/info>
+- **JSON-RPC**: `http://34.122.156.185:8545` (Ethereum-compatible)
+- **Health Check**: `http://34.122.156.185:8545/health`
+- **Chain Info**: `http://34.122.156.185:8545/info`
+- **Gas Pricing**: `http://34.122.156.185:8545/gas/rate`
+- **Validator Network**: `http://34.122.156.185:8545/validator/list`
+
+### 🔗 **Quick Connect Guide for Developers**
+
+#### MetaMask Setup
+
+1. Add Custom Network in MetaMask
+2. **Network Name**: `ZSnail L2`
+3. **RPC URL**: `http://34.122.156.185:8545`
+4. **Chain ID**: `66875`
+5. **Currency Symbol**: `ZSNAIL`
+
+#### Hardhat/Foundry Configuration
+
+```javascript
+// hardhat.config.js
+networks: {
+  zsnail: {
+    url: "http://34.122.156.185:8545",
+    chainId: 66875,
+    accounts: [process.env.PRIVATE_KEY]
+  }
+}
+```
+
+```bash
+# Foundry commands
+forge create YourContract --rpc-url http://34.122.156.185:8545 --private-key $PRIVATE_KEY
+cast call 0xContractAddress "balanceOf(address)" 0xYourAddress --rpc-url http://34.122.156.185:8545
+```
+
+### 🧪 **Quick Connection Test**
+
+Test the live blockchain connection:
+
+```bash
+# Check blockchain info
+curl http://34.122.156.185:8545/info
+
+# Check health status
+curl http://34.122.156.185:8545/health
+
+# Get current block number (JSON-RPC)
+curl -X POST http://34.122.156.185:8545 \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
+```
+
+Expected response includes:
+
+- **Chain ID**: `66875`
+- **Network**: `ZSnail L2`
+- **Status**: `running`
+- **Consensus**: `Proof of Work`
+
+### 📊 **Current Network Parameters**
+
+Live blockchain configuration (as of September 19, 2025):
+
+- **Block Reward**: `1 ETH` (transitioning to ZSnail tokens)
+- **Gas Price**: `1 Gwei`
+- **Block Time**: `2 seconds`
+- **Mining**: Active with PoW consensus
+- **Miner Address**: `0x9a36a3e13586f6b114aA78fD84b6fe6055f83b48`
+
+*Note: The network is currently undergoing configuration updates to implement pure ZSnail tokenomics with 25,000 ZSNAIL block rewards and mathematical gas pricing algorithms.*
 
 ## 🔧 **Current Status**
 
-**Development Phase**: ZSnail L2 is currently in active development with a complete framework ready for deployment.
+**Production Phase**: ZSnail L2 is **LIVE and operational** on Kubernetes infrastructure.
 
+- ✅ **Live Blockchain**: Deployed on Google Cloud Platform (34.122.156.185:8545)
 - ✅ **Complete Development Environment**: All tools installed and configured
-- ✅ **Smart Contract Library**: 16+ custom ZSnail contracts developed
-- ✅ **L2 Infrastructure**: Sequencer, bridge, and rollup components ready
-- ✅ **Cloud Integration**: Google Cloud Platform setup complete
-- 🔄 **In Progress**: Testing and optimization phases
-- 📅 **Next Steps**: Testnet deployment (Q1 2026), Mainnet launch (Q2 2026)
+- ✅ **Smart Contract Library**: 16+ custom ZSnail contracts deployed
+- ✅ **L2 Infrastructure**: Sequencer, bridge, and rollup components operational
+- ✅ **Cloud Integration**: Google Cloud Platform production deployment
+- ✅ **External Access**: Public RPC endpoint available for developers
+- 🔄 **Configuration Tuning**: Optimizing gas pricing and mining rewards
+- 📅 **Phase 2**: Advanced DeFi ecosystem development (Q1-Q2 2026)
+
+### 🌟 **For External Developers**
+
+You can **connect right now** to test and build on ZSnail L2! Use the endpoints above to:
+
+- Deploy smart contracts
+- Test transactions
+- Build dApps
+- Explore the blockchain
+- Experiment with L2 features
 
 ---
 
