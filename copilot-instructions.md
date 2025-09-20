@@ -2,6 +2,14 @@
 
 ## 🚨 CRITICAL DEVELOPMENT PRINCIPLES
 
+### ⛔ DO NOT ASSUME
+**NEVER make assumptions about user intentions, project direction, or technical decisions without explicit confirmation.**
+- Always ASK before suggesting architectural changes or technology switches
+- Do NOT suggest replacing existing systems without user request
+- Do NOT assume what infrastructure the user wants to implement
+- ALWAYS clarify requirements before proceeding with research or implementation
+- If uncertain about user goals, ASK SPECIFIC QUESTIONS before taking action
+
 ### PROJECT STATUS UPDATE - September 2025
 **COMPLETED INFRASTRUCTURE**: ZSnail L2 now has a complete, production-ready blockchain ecosystem:
 - **✅ 16 Custom ZSnail Library Contracts**: Complete replacement of OpenZeppelin with L2-optimized implementations
