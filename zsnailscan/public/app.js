@@ -53,25 +53,26 @@ class ZSnailScanApp {
             
             // Static values for ZSnail network
             this.updateElement('consensus', 'Proof of Work');
-            this.updateElement('totalBlocks', latestBlock.toLocaleString());
+            // Total blocks = latest block number + 1 (blocks start from 0)
+            this.updateElement('totalBlocks', (latestBlock + 1).toLocaleString());
             
-            // Get total supply by checking the balance of the zero address (total burned) and calculating circulating supply
+            // Get REAL total supply from the miner's actual balance (shows real block rewards)
             try {
-                // ZSnail is the native token (like ETH), so calculate total supply based on blockchain economics
-                // Get total issued minus any burned tokens
-                const zeroAddress = '0x0000000000000000000000000000000000000000';
-                const burnedBalance = await this.rpcCall('eth_getBalance', [zeroAddress, 'latest']);
-                const burnedAmount = parseInt(burnedBalance, 16) / 1e18;
+                // Get the main miner's balance to see actual total tokens mined
+                const minerAddress = '0x9a36a3e13586f6b114aA78fD84b6fe6055f83b48';
+                const minerBalance = await this.rpcCall('eth_getBalance', [minerAddress, 'latest']);
                 
-                // Estimate total issued based on block rewards (2 ZSNAIL per block as configured)
-                const totalIssued = latestBlock * 2;
-                const circulatingSupply = totalIssued - burnedAmount;
+                // Convert from hex wei to ZSNAIL tokens
+                const minerBalanceWei = BigInt(minerBalance);
+                const totalSupply = Number(minerBalanceWei) / 1e18;
                 
-                this.updateElement('totalSupply', `${circulatingSupply.toLocaleString()} ZSNAIL (Native Token)`);
+                // Calculate actual reward per block from real data
+                const actualRewardPerBlock = totalSupply / latestBlock;
+                
+                this.updateElement('totalSupply', `${totalSupply.toLocaleString('en-US', {maximumFractionDigits: 0})} ZSNAIL (${actualRewardPerBlock.toLocaleString('en-US', {maximumFractionDigits: 0})} per block)`);
             } catch (supplyError) {
-                // Fallback calculation if burn address query fails
-                const estimatedSupply = latestBlock * 2;
-                this.updateElement('totalSupply', `${estimatedSupply.toLocaleString()} ZSNAIL (Estimated)`);
+                console.error('Failed to get real supply data:', supplyError);
+                this.updateElement('totalSupply', 'Loading real supply data...');
             }
             
             this.updateElement('connectedWallets', 'Active Network');
