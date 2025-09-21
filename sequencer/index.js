@@ -1,8 +1,38 @@
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 class ZSnailSequencer {
+  // ========================================
+  // ZSNAIL DECIMAL HANDLING - STANDARD 18 DECIMALS
+  // ========================================
+  
+  // Standard 18 decimals like Ethereum
+  static ZSNAIL_DECIMALS = 18;
+  static ZSNAIL_UNIT = BigInt('1000000000000000000'); // 1e18
+  
+  // Convert ZSNAIL amount to wei (18 decimals)
+  static toZSnailWei(amount) {
+    if (typeof amount === 'string') {
+      // Handle decimal strings like "25000.5"
+      const parts = amount.split('.');
+      const wholePart = BigInt(parts[0] || '0');
+      const fractionalPart = parts[1] ? BigInt((parts[1] + '000000000000000000').slice(0, 18)) : BigInt(0);
+      return wholePart * ZSnailSequencer.ZSNAIL_UNIT + fractionalPart;
+    }
+    return BigInt(amount) * ZSnailSequencer.ZSNAIL_UNIT;
+  }
+  
+  // Convert wei to ZSNAIL amount (18 decimals)
+  static fromZSnailWei(wei) {
+    const weiAmount = typeof wei === 'bigint' ? wei : BigInt(wei);
+    const wholePart = weiAmount / ZSnailSequencer.ZSNAIL_UNIT;
+    const fractionalPart = weiAmount % ZSnailSequencer.ZSNAIL_UNIT;
+    return `${wholePart.toString()}.${fractionalPart.toString().padStart(18, '0')}`;
+  }
+
   constructor() {
     this.app = express();
     this.chainId = this.generateChainId();
@@ -10,30 +40,43 @@ class ZSnailSequencer {
     this.blocks = [];
     this.pendingTransactions = [];
     
+    // Persistent storage configuration
+    this.dataDirectory = process.env.BLOCKCHAIN_DATA_DIR || '/app/blockchain-data';
+    this.databaseDirectory = process.env.DATABASE_DIR || '/app/database';
+    this.backupEnabled = process.env.BACKUP_ENABLED === 'true' || true;
+    
+    // Ensure data directories exist
+    this.ensureDirectories();
+    
+    // Load existing blockchain data if available
+    this.loadBlockchainData();
+    
     // Proof of Work configuration
     this.difficulty = 2; // Number of leading zeros required (start easy)
-    this.blockReward = '50000000000000000000'; // 50 ZSNAIL reward per block (native token)
+    this.blockReward = ZSnailSequencer.fromZSnailWei(ZSnailSequencer.toZSnailWei('25000')); // 25,000 ZSNAIL reward per block (PURE ZSNAIL ECONOMY)
     this.isMining = false;
     this.minerAddress = '0x9a36a3e13586f6b114aA78fD84b6fe6055f83b48'; // Your wallet as default miner
     
-    // Native ZSNAIL Token Integration (Like ETH on Ethereum)
-    this.zsnailTokenAddress = null; // Will be set when deployed
+    // PURE ZSNAIL TOKEN ECONOMY (NO ETH ANYWHERE)
+    this.zsnailTokenAddress = '0x0000000000000000000000000000000000000000'; // Native currency address
     this.gasTokenEnabled = true;
-    this.zsnailGasRate = 12500; // 1 ETH = 12,500 ZSNAIL rate from hybrid model
+    this.zsnailPerEth = 0; // REMOVED - No ETH in pure ZSnail economy
+    this.ethDisabled = true; // ETH completely disabled
+    this.pureZsnailEconomy = true;
     this.zsnailNativeBalances = new Map(); // Track native ZSNAIL balances
-    this.zsnailBalances = new Map(); // Legacy compatibility
+    this.currentGasPrice = '1388888888888888'; // Mathematical gas pricing in ZSnail wei (18 decimals)
     
-    // Native ZSNAIL Mining Configuration
-    this.currentBlockReward = BigInt('50000000000000000000'); // 50 ZSNAIL per block
-    this.maxSupply = BigInt('210000000000000000000000000000'); // 210 billion ZSNAIL max
-    this.totalSupply = BigInt('100000000000000000000000000'); // Initial 100 million ZSNAIL
+    // Pure ZSnail Mining Configuration (25,000 ZSNAIL per block with 18 decimals)
+    this.currentBlockReward = ZSnailSequencer.toZSnailWei('25000'); // 25,000 ZSNAIL per block
+    this.maxSupply = ZSnailSequencer.toZSnailWei('210000000000'); // 210 billion ZSNAIL max
+    this.totalSupply = ZSnailSequencer.toZSnailWei('100000000'); // Initial 100 million ZSNAIL
     this.halvingInterval = 525600; // Halving every 525,600 blocks (~3 years)
     this.lastHalvingBlock = 0;
     
     // Reward distribution percentages (Bitcoin-like)
-    this.minerRewardPercentage = 70; // 70% to miners
-    this.validatorRewardPercentage = 20; // 20% to validators  
-    this.treasuryRewardPercentage = 10; // 10% to treasury
+    this.minerRewardPercentage = 70; // 70% to miners = 17,500 ZSNAIL
+    this.validatorRewardPercentage = 20; // 20% to validators = 5,000 ZSNAIL
+    this.treasuryRewardPercentage = 10; // 10% to treasury = 2,500 ZSNAIL
     
     // Initialize your wallet with native ZSNAIL balance
     this.zsnailNativeBalances.set('0x9a36a3e13586f6b114aA78fD84b6fe6055f83b48', BigInt('1000000000000000000000')); // 1000 ZSNAIL initial
@@ -73,6 +116,129 @@ class ZSnailSequencer {
     
     console.log(`🎯 ZSnail L2 Chain ID: ${chainId} (PERMANENT)`);
     return chainId;
+  }
+  
+  // ========================================
+  // PERSISTENT STORAGE & DATABASE METHODS
+  // ========================================
+  
+  ensureDirectories() {
+    try {
+      // Create blockchain data directory
+      if (!fs.existsSync(this.dataDirectory)) {
+        fs.mkdirSync(this.dataDirectory, { recursive: true });
+        console.log(`📁 Created blockchain data directory: ${this.dataDirectory}`);
+      }
+      
+      // Create database directory
+      if (!fs.existsSync(this.databaseDirectory)) {
+        fs.mkdirSync(this.databaseDirectory, { recursive: true });
+        console.log(`🗄️ Created database directory: ${this.databaseDirectory}`);
+      }
+      
+      // Create subdirectories
+      const subdirs = ['blocks', 'transactions', 'wallets', 'state', 'logs'];
+      subdirs.forEach(dir => {
+        const dirPath = path.join(this.dataDirectory, dir);
+        if (!fs.existsSync(dirPath)) {
+          fs.mkdirSync(dirPath, { recursive: true });
+        }
+      });
+      
+      console.log(`✅ All storage directories ready`);
+    } catch (error) {
+      console.error(`❌ Error creating directories:`, error);
+    }
+  }
+  
+  saveBlockchainData() {
+    try {
+      const timestamp = new Date().toISOString();
+      
+      // Save blocks
+      const blocksFile = path.join(this.dataDirectory, 'blocks', 'blocks.json');
+      fs.writeFileSync(blocksFile, JSON.stringify({
+        timestamp,
+        totalBlocks: this.blocks.length,
+        currentBlockNumber: this.blockNumber,
+        blocks: this.blocks
+      }, null, 2));
+      
+      // Save wallets and balances
+      const walletsFile = path.join(this.dataDirectory, 'wallets', 'wallets.json');
+      fs.writeFileSync(walletsFile, JSON.stringify({
+        timestamp,
+        wallets: Array.from(this.wallets.entries()),
+        balances: Array.from(this.balances.entries()),
+        zsnailBalances: Array.from(this.zsnailNativeBalances.entries())
+      }, null, 2));
+      
+      // Save blockchain state
+      const stateFile = path.join(this.dataDirectory, 'state', 'blockchain-state.json');
+      fs.writeFileSync(stateFile, JSON.stringify({
+        timestamp,
+        chainId: this.chainId,
+        blockNumber: this.blockNumber,
+        difficulty: this.difficulty,
+        blockReward: this.blockReward,
+        minerAddress: this.minerAddress,
+        isMining: this.isMining,
+        totalSupply: this.getTotalSupply()
+      }, null, 2));
+      
+      console.log(`💾 Blockchain data saved at ${timestamp}`);
+    } catch (error) {
+      console.error(`❌ Error saving blockchain data:`, error);
+    }
+  }
+  
+  loadBlockchainData() {
+    try {
+      // Load blocks
+      const blocksFile = path.join(this.dataDirectory, 'blocks', 'blocks.json');
+      if (fs.existsSync(blocksFile)) {
+        const blocksData = JSON.parse(fs.readFileSync(blocksFile, 'utf8'));
+        this.blocks = blocksData.blocks || [];
+        this.blockNumber = blocksData.currentBlockNumber || 0;
+        console.log(`📦 Loaded ${this.blocks.length} blocks from storage`);
+      }
+      
+      // Load wallets and balances
+      const walletsFile = path.join(this.dataDirectory, 'wallets', 'wallets.json');
+      if (fs.existsSync(walletsFile)) {
+        const walletsData = JSON.parse(fs.readFileSync(walletsFile, 'utf8'));
+        this.wallets = new Map(walletsData.wallets || []);
+        this.balances = new Map(walletsData.balances || []);
+        this.zsnailNativeBalances = new Map(walletsData.zsnailBalances || []);
+        console.log(`👛 Loaded ${this.wallets.size} wallets from storage`);
+      }
+      
+      // Load blockchain state
+      const stateFile = path.join(this.dataDirectory, 'state', 'blockchain-state.json');
+      if (fs.existsSync(stateFile)) {
+        const stateData = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+        // Only restore certain state values, keep others from constructor
+        this.difficulty = stateData.difficulty || this.difficulty;
+        this.minerAddress = stateData.minerAddress || this.minerAddress;
+        console.log(`🔄 Blockchain state restored from ${stateData.timestamp}`);
+      }
+      
+      if (this.blocks.length > 0) {
+        console.log(`🎯 Resumed blockchain at block ${this.blockNumber} with ${this.blocks.length} total blocks`);
+      } else {
+        console.log(`🆕 Starting fresh blockchain`);
+      }
+    } catch (error) {
+      console.error(`⚠️ Error loading blockchain data (starting fresh):`, error);
+    }
+  }
+  
+  getTotalSupply() {
+    let totalSupply = BigInt(0);
+    for (const balance of this.zsnailNativeBalances.values()) {
+      totalSupply += BigInt(balance);
+    }
+    return totalSupply.toString();
   }
   
   initializeWallet(address) {
@@ -131,6 +297,9 @@ class ZSnailSequencer {
       // Clear pending transactions
       this.pendingTransactions = [];
       
+      // Save blockchain data to persistent storage
+      this.saveBlockchainData();
+      
       // Distribute ZSNAIL mining rewards
       this.distributeZSnailMiningRewards(blockNumber);
       
@@ -159,7 +328,7 @@ class ZSnailSequencer {
       // No validators yet - miner gets 100% of rewards
       console.log('⚠️  No active validators - miner receives full block reward');
       
-      const currentMinerBalance = BigInt(this.getZSnailBalance(this.minerAddress));
+      const currentMinerBalance = this.parseDecimalToBigInt(this.getZSnailBalance(this.minerAddress).toString());
       const newMinerBalance = currentMinerBalance + currentReward;
       this.zsnailNativeBalances.set(this.minerAddress, newMinerBalance);
       
@@ -173,21 +342,21 @@ class ZSnailSequencer {
       const treasuryReward = (currentReward * BigInt(this.treasuryRewardPercentage)) / BigInt(100);
       
       // Pay miner (your wallet)
-      const currentMinerBalance = BigInt(this.getZSnailBalance(this.minerAddress));
+      const currentMinerBalance = this.parseDecimalToBigInt(this.getZSnailBalance(this.minerAddress).toString());
       const newMinerBalance = currentMinerBalance + minerReward;
       this.zsnailNativeBalances.set(this.minerAddress, newMinerBalance);
       
       // Pay validators (distributed among active validators)
       const rewardPerValidator = validatorReward / BigInt(activeValidators.length);
       for (const validator of activeValidators) {
-        const currentBalance = BigInt(this.getZSnailBalance(validator.address));
+        const currentBalance = this.parseDecimalToBigInt(this.getZSnailBalance(validator.address).toString());
         const newBalance = currentBalance + rewardPerValidator;
         this.zsnailNativeBalances.set(validator.address, newBalance);
       }
       
       // Pay treasury
       const treasuryAddress = '0x742d35Cc6634C0532925a3b8c7C025B0e4FfFf9C';
-      const currentTreasuryBalance = BigInt(this.getZSnailBalance(treasuryAddress));
+      const currentTreasuryBalance = this.parseDecimalToBigInt(this.getZSnailBalance(treasuryAddress).toString());
       const newTreasuryBalance = currentTreasuryBalance + treasuryReward;
       this.zsnailNativeBalances.set(treasuryAddress, newTreasuryBalance);
       
@@ -224,24 +393,23 @@ class ZSnailSequencer {
     return this.zsnailNativeBalances.get(address) || BigInt(0);
   }
   
-  // Format ZSNAIL balance for display
+  // Format ZSNAIL balance for display (using 12 decimals)
   formatZSnailBalance(balance) {
-    const balanceBig = typeof balance === 'bigint' ? balance : BigInt(balance);
-    const balanceEth = Number(balanceBig) / 1e18;
-    return balanceEth.toLocaleString(undefined, { maximumFractionDigits: 6 });
+    const balanceBig = typeof balance === 'bigint' ? balance : this.parseDecimalToBigInt(balance.toString());
+    return ZSnailSequencer.fromZSnailWei(balanceBig);
   }
   
   // Check if address can pay gas in ZSNAIL
   canPayGasInZSnail(address, gasAmount) {
     const balance = this.getZSnailBalance(address);
-    const gasRequired = BigInt(gasAmount) * BigInt(this.zsnailGasRate);
+    const gasRequired = BigInt(gasAmount) * BigInt(this.currentGasPrice); // Pure ZSnail gas price
     return balance >= gasRequired;
   }
   
   // Deduct ZSNAIL for gas payment
   payGasInZSnail(address, gasAmount) {
     const balance = this.getZSnailBalance(address);
-    const gasCost = BigInt(gasAmount) * BigInt(this.zsnailGasRate);
+    const gasCost = BigInt(gasAmount) * BigInt(this.currentGasPrice); // Pure ZSnail pricing
     
     if (balance >= gasCost) {
       const newBalance = balance - gasCost;
@@ -272,6 +440,9 @@ class ZSnailSequencer {
     
     this.blocks.push(genesisBlock);
     console.log(`🏗️  Genesis block created: ${genesisBlock.hash}`);
+    
+    // Save genesis block to persistent storage
+    this.saveBlockchainData();
   }
   
   generateBlockHash(blockNumber, parentHash, transactions, nonce) {
@@ -536,7 +707,7 @@ class ZSnailSequencer {
         minerBalance: this.getBalance(this.minerAddress),
         minerBalanceETH: (BigInt(this.getBalance(this.minerAddress)) / BigInt(1e18)).toString(),
         blockReward: this.blockReward,
-        blockRewardETH: parseInt(this.blockReward) / 1e18,
+        blockRewardETH: (BigInt(this.blockReward) / BigInt(1e18)).toString(),
         recentBlocks: this.blocks.slice(-10).map(block => ({
           number: block.number,
           hash: block.hash.substring(0, 16) + '...',
@@ -564,7 +735,7 @@ class ZSnailSequencer {
         size: JSON.stringify(block).length,
         age: Date.now() - (block.timestamp * 1000),
         confirmations: this.blocks.length - blockNumber,
-        rewardETH: parseInt(block.reward || this.blockReward) / 1e18,
+        rewardETH: (BigInt(block.reward || this.blockReward) / BigInt(1e18)).toString(),
         miningTimeSeconds: (block.miningTime || 0) / 1000
       });
     });
@@ -600,7 +771,7 @@ class ZSnailSequencer {
           difficulty: this.difficulty,
           hashrate: hashrate,
           blockReward: this.blockReward,
-          blockRewardETH: parseInt(this.blockReward) / 1e18,
+          blockRewardETH: (BigInt(this.blockReward) / BigInt(1e18)).toString(),
           isMining: this.isMining,
           minerAddress: this.minerAddress
         },
@@ -639,7 +810,7 @@ class ZSnailSequencer {
     // Mining control endpoints
     this.app.post('/mining/start', (req, res) => {
       if (!this.isMining) {
-        this.mineNextBlock();
+        this.startPoWMining();
         res.json({ success: true, message: 'Mining started' });
       } else {
         res.json({ success: false, message: 'Already mining' });
@@ -690,31 +861,29 @@ class ZSnailSequencer {
     
     this.app.get('/gas/rate', (req, res) => {
       res.json({
-        zsnailPerEth: this.zsnailGasRate,
+        zsnailPerEth: 0, // NO ETH - Pure ZSnail economy
         gasTokenEnabled: this.gasTokenEnabled,
-        currentGasPrice: '1000000000', // 1 gwei
-        zsnailTokenAddress: this.zsnailTokenAddress
+        currentGasPrice: this.currentGasPrice, // Mathematical ZSnail gas pricing
+        zsnailTokenAddress: this.zsnailTokenAddress,
+        pureZsnailEconomy: this.pureZsnailEconomy,
+        ethDisabled: this.ethDisabled,
+        nativeCurrency: 'ZSNAIL',
+        gasPriceInZsnailWei: this.currentGasPrice
       });
     });
     
-    this.app.post('/gas/setRate', (req, res) => {
-      const { rate } = req.body;
-      if (rate && rate > 0) {
-        this.zsnailGasRate = parseInt(rate);
-        res.json({ success: true, message: `ZSnail gas rate set to ${rate}` });
-      } else {
-        res.json({ success: false, message: 'Valid rate required' });
-      }
-    });
+    // ZSnail gas rate is now hardcoded in constructor - no dynamic setting needed in pure ZSnail economy
     
     this.app.get('/zsnail/balance/:address', (req, res) => {
       const address = req.params.address;
       const balance = this.getZSnailBalance(address);
+      const balanceFormatted = ZSnailSequencer.fromZSnailWei(balance);
+      
       res.json({
         address: address,
-        zsnailBalance: balance,
-        zsnailBalanceFormatted: (parseInt(balance) / 1e18).toString(),
-        canPayGas: parseInt(balance) > 0
+        zsnailBalance: balance.toString(),
+        zsnailBalanceFormatted: balanceFormatted,
+        canPayGas: balance > BigInt(0)
       });
     });
     
@@ -739,7 +908,7 @@ class ZSnailSequencer {
           success: true, 
           validationId: result.id,
           consensusReached: result.consensus,
-          reward: result.reward
+          reward: result.reward.toString()
         });
       } catch (error) {
         res.json({ success: false, message: error.message });
@@ -802,7 +971,9 @@ class ZSnailSequencer {
           totalSupply: this.getTotalZSnailSupply(),
           circulatingSupply: this.getCirculatingZSnailSupply(),
           gasTokenEnabled: this.gasTokenEnabled,
-          gasRate: this.zsnailGasRate
+          currentGasPrice: this.currentGasPrice, // Pure ZSnail gas price
+          pureZsnailEconomy: this.pureZsnailEconomy,
+          ethDisabled: this.ethDisabled
         },
         mining: {
           currentReward: this.blockReward,
@@ -927,7 +1098,7 @@ class ZSnailSequencer {
       console.log(`🔗 Chain ID: ${this.chainId} (PERMANENT)`);
       console.log('⛏️  Consensus: Proof of Work');
       console.log(`💎 Difficulty: ${this.difficulty}`);
-      console.log(`💰 Block Reward: ${parseInt(this.blockReward) / 1e18} ETH`);
+      console.log(`💰 Block Reward: ${(this.parseDecimalToBigInt(this.blockReward, 18) / BigInt(1e18)).toString()} ZSNAIL`);
       console.log(`� Connected Wallet: ${this.minerAddress}`);
       console.log(`💵 Wallet Balance: ${(BigInt(this.getBalance(this.minerAddress)) / BigInt(1e18)).toString()} ETH`);
       console.log(`�📡 RPC Endpoint: http://localhost:${port}`);
@@ -959,33 +1130,69 @@ class ZSnailSequencer {
       throw new Error('Gas token payments disabled');
     }
     
-    const gasPrice = 1000000000; // 1 gwei
-    const ethRequired = gasUsed * gasPrice;
-    const zsnailRequired = Math.floor(ethRequired * this.zsnailGasRate / 1e18);
+    // Pure ZSnail gas calculation - no ETH conversion needed
+    const zsnailGasCost = BigInt(gasUsed) * BigInt(this.currentGasPrice);
     
     const zsnailBalance = this.getZSnailBalance(address);
-    if (parseInt(zsnailBalance) < zsnailRequired) {
+    if (zsnailBalance < zsnailGasCost) {
       throw new Error('Insufficient ZSnail balance for gas');
     }
     
-    // Deduct ZSnail tokens
-    this.setZSnailBalance(address, (parseInt(zsnailBalance) - zsnailRequired).toString());
+    // Deduct ZSnail tokens directly
+    const newBalance = zsnailBalance - zsnailGasCost;
+    this.zsnailNativeBalances.set(address, newBalance);
     
-    // Add to gas fee pool
-    this.addToGasFeePool(zsnailRequired);
+    // Add to gas fee pool in pure ZSnail
+    this.addToGasFeePool(zsnailGasCost);
     
     return {
-      zsnailAmount: zsnailRequired,
-      ethEquivalent: ethRequired / 1e18
+      zsnailAmount: zsnailGasCost.toString(),
+      gasPriceUsed: this.currentGasPrice,
+      pureZsnailTransaction: true
     };
   }
   
   /**
    * Set ZSnail token balance
    */
+  // Industry-standard BigInt decimal parsing (Ethers.js parseUnits pattern)
+  parseDecimalToBigInt(value, decimals = 18) {
+    // Convert to string for parsing
+    const valueStr = String(value);
+    
+    // Parse decimal number using regex (same pattern as Ethers.js)
+    const match = valueStr.match(/^(-?)([0-9]*)\.?([0-9]*)$/);
+    if (!match) {
+      throw new Error(`Invalid decimal format: ${valueStr}`);
+    }
+    
+    const sign = match[1] || "";
+    let whole = match[2] || "0";
+    let decimal = match[3] || "";
+    
+    // Pad decimals to exactly 18 places (Ethers.js pattern)
+    while (decimal.length < decimals) {
+      decimal += "0";
+    }
+    
+    // Truncate if too many decimals (precision protection)
+    decimal = decimal.substring(0, decimals);
+    
+    // Create BigInt from concatenated string (proven Ethers.js method)
+    return BigInt(sign + whole + decimal);
+  }
+
   setZSnailBalance(address, balance) {
-    // Convert to BigInt for native ZSNAIL handling
-    const balanceBig = typeof balance === 'string' ? BigInt(balance) : BigInt(balance.toString());
+    // Convert to BigInt using industry-standard parseUnits pattern
+    let balanceBig;
+    
+    if (typeof balance === 'bigint') {
+      balanceBig = balance;
+    } else {
+      // Use proven Ethers.js decimal parsing for all other types
+      balanceBig = this.parseDecimalToBigInt(balance, 18);
+    }
+    
     this.zsnailNativeBalances.set(address, balanceBig);
   }
   
@@ -1001,7 +1208,9 @@ class ZSnailSequencer {
    */
   addToGasFeePool(amount) {
     const currentPool = this.getZSnailBalance('GAS_FEE_POOL');
-    this.setZSnailBalance('GAS_FEE_POOL', (parseInt(currentPool) + amount).toString());
+    const amountBig = typeof amount === 'bigint' ? amount : this.parseDecimalToBigInt(amount.toString());
+    const newPool = currentPool + amountBig;
+    this.zsnailNativeBalances.set('GAS_FEE_POOL', newPool);
   }
   
   // ========================================
@@ -1016,9 +1225,10 @@ class ZSnailSequencer {
       throw new Error('Validator already registered');
     }
     
-    const minStake = 10000; // 10K ZSNAIL minimum
-    if (parseInt(stake) < minStake) {
-      throw new Error(`Minimum stake of ${minStake} ZSNAIL required`);
+    const minStake = ZSnailSequencer.toZSnailWei('10000'); // 10K ZSNAIL minimum
+    const stakeBig = typeof stake === 'bigint' ? stake : this.parseDecimalToBigInt(stake.toString());
+    if (stakeBig < minStake) {
+      throw new Error(`Minimum stake of 10,000 ZSNAIL required`);
     }
     
     const validator = {
@@ -1026,7 +1236,7 @@ class ZSnailSequencer {
       address: address,
       nodeUrl: nodeUrl,
       region: region,
-      stake: stake,
+      stake: stakeBig.toString(),
       reputation: 100,
       isActive: true,
       blocksValidated: 0,
@@ -1039,11 +1249,12 @@ class ZSnailSequencer {
     
     // Stake ZSnail tokens
     const currentBalance = this.getZSnailBalance(address);
-    if (parseInt(currentBalance) < parseInt(stake)) {
+    if (currentBalance < stakeBig) {
       throw new Error('Insufficient ZSnail balance for staking');
     }
     
-    this.setZSnailBalance(address, (parseInt(currentBalance) - parseInt(stake)).toString());
+    const newBalance = currentBalance - stakeBig;
+    this.setZSnailBalance(address, newBalance.toString());
     
     return { id: validator.id };
   }
@@ -1143,13 +1354,14 @@ class ZSnailSequencer {
    * Reward validator for participation
    */
   rewardValidator(validatorAddress, consensusReached) {
-    const baseReward = 50; // 50 ZSNAIL base reward
-    const consensusBonus = consensusReached ? 25 : 0; // 25 ZSNAIL bonus for consensus
+    const baseReward = ZSnailSequencer.toZSnailWei('75'); // 75 ZSNAIL base reward
+    const consensusBonus = consensusReached ? ZSnailSequencer.toZSnailWei('25') : BigInt('0'); // 25 ZSNAIL bonus for consensus
     const totalReward = baseReward + consensusBonus;
     
     // Add reward to validator balance
     const currentBalance = this.getZSnailBalance(validatorAddress);
-    this.setZSnailBalance(validatorAddress, (parseInt(currentBalance) + totalReward).toString());
+    const newBalance = currentBalance + totalReward;
+    this.zsnailNativeBalances.set(validatorAddress, newBalance);
     
     // Update validator reputation
     const validator = this.validators.get(validatorAddress);
@@ -1202,20 +1414,22 @@ class ZSnailSequencer {
   // ========================================
   
   getTotalZSnailSupply() {
-    // Calculate total supply based on all balances
-    let total = 0;
-    for (const balance of this.zsnailBalances.values()) {
-      total += parseInt(balance);
+    // Calculate total supply based on all native balances
+    let total = BigInt(0);
+    for (const balance of this.zsnailNativeBalances.values()) {
+      const balanceBig = typeof balance === 'bigint' ? balance : this.parseDecimalToBigInt(balance.toString());
+      total += balanceBig;
     }
     return total.toString();
   }
   
   getCirculatingZSnailSupply() {
-    // Circulating supply (excluding staked tokens)
-    let circulating = 0;
-    for (const [address, balance] of this.zsnailBalances.entries()) {
+    // Circulating supply (excluding staked tokens and pools)
+    let circulating = BigInt(0);
+    for (const [address, balance] of this.zsnailNativeBalances.entries()) {
       if (!address.includes('POOL') && !address.includes('STAKE')) {
-        circulating += parseInt(balance);
+        const balanceBig = typeof balance === 'bigint' ? balance : this.parseDecimalToBigInt(balance.toString());
+        circulating += balanceBig;
       }
     }
     return circulating.toString();
@@ -1227,9 +1441,10 @@ class ZSnailSequencer {
   }
   
   getTotalValidatorStake() {
-    let totalStake = 0;
+    let totalStake = BigInt(0);
     for (const validator of this.validators.values()) {
-      totalStake += parseInt(validator.stake);
+      const stake = typeof validator.stake === 'bigint' ? validator.stake : this.parseDecimalToBigInt(validator.stake.toString());
+      totalStake += stake;
     }
     return totalStake.toString();
   }
@@ -1242,7 +1457,7 @@ class ZSnailSequencer {
 // Initialize some ZSnail balances for testing
 function initializeTestTokens(sequencer) {
   // Give the main wallet some ZSnail tokens for testing
-  sequencer.initializeZSnailBalance('0x9a36a3e13586f6b114aA78fD84b6fe6055f83b48', '10000000000000000000000000'); // 10M ZSNAIL
+  sequencer.initializeZSnailBalance('0x9a36a3e13586f6b114aA78fD84b6fe6055f83b48', ZSnailSequencer.fromZSnailWei(ZSnailSequencer.toZSnailWei('10000000'))); // 10M ZSNAIL
   
   console.log('🪙 Initialized test ZSnail tokens:');
   console.log('   Wallet: 0x9a36a3e13586f6b114aA78fD84b6fe6055f83b48');

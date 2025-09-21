@@ -1,5 +1,16 @@
 # 🎉 ZSnail L2 - Advanced Layer 2 Blockchain ✅ LIVE & OPERATIONAL
 
+## 🚀 **Live Production L2 Blockchain - Solidity 0.8.30 Prague Ready**
+
+### 🎯 **Network Configuration**
+
+- **Chain ID**: `66875` (Decimal) | `0x1053b` (Hexadecimal)  
+- **Network Name**: ZSnail L2
+- **Status**: ✅ **LIVE** - Production blockchain operational
+- **Solidity Version**: **0.8.30 Prague** - Latest 2025 compiler features
+- **External RPC**: `http://34.122.156.185:8545` 🌐 **CONNECT NOW**
+- **WebSocket**: `ws://34.122.156.185:8545` L2 - Advanced Layer 2 Blockchain ✅ LIVE & OPERATIONAL
+
 ## 🚀 **Live Production L2 Blockchain**
 
 ### 🎯 **Network Configuration**
@@ -73,15 +84,29 @@ Expected response includes:
 
 ### 📊 **Current Network Parameters**
 
-Live blockchain configuration (as of September 19, 2025):
+Live blockchain configuration (as of September 20, 2025):
 
-- **Block Reward**: `1 ETH` (transitioning to ZSnail tokens)
-- **Gas Price**: `1 Gwei`
+**⚠️ Configuration Update in Progress:**
+- **Current Block Reward**: `1 ETH` (converting to 25,000 ZSNAIL)
+- **Current Gas Price**: `1 Gwei` (converting to 1.388T ZSNAIL wei)
+- **Target Block Reward**: `25,000 ZSNAIL` (pure ZSnail economy)
+- **Target Gas Price**: `1,388,888,888,888,888 wei ZSNAIL`
 - **Block Time**: `2 seconds`
 - **Mining**: Active with PoW consensus
 - **Miner Address**: `0x9a36a3e13586f6b114aA78fD84b6fe6055f83b48`
 
-*Note: The network is currently undergoing configuration updates to implement pure ZSnail tokenomics with 25,000 ZSNAIL block rewards and mathematical gas pricing algorithms.*
+### 🎯 **Pure ZSnail Economy Vision**
+
+ZSnail L2 is transitioning to a **100% ZSnail-native economy**:
+
+- **No ETH References**: Complete removal of ETH from all operations
+- **ZSnail Native Currency**: ZSNAIL becomes the blockchain's native token
+- **Mining Rewards**: 25,000 ZSNAIL per block (sustainable economics)
+- **Gas Payments**: All transaction fees paid in ZSNAIL tokens
+- **Validator Stakes**: All staking and rewards in ZSNAIL
+- **Smart Contracts**: All operations use ZSNAIL as native currency
+
+*Note: The network is currently undergoing configuration updates to implement the pure ZSnail tokenomics. The sequencer code requires updates to read environment variables properly.*
 
 ## 🔧 **Current Status**
 
