@@ -6,8 +6,8 @@
   NODE_VERSION = "18"
 
 [[redirects]]
-  from = "/api/*"
-  to = "http://34.122.156.185:8545/:splat"
+  from = "/rpc"
+  to = "http://34.122.156.185:8545"
   status = 200
   force = true
   headers = {X-From = "Netlify"}
