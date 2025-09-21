@@ -1,4 +1,6 @@
 // ZSnailScan Frontend JavaScript - Complete Netlify Version
+// ZSnail is the NATIVE TOKEN (like ETH) - no contract address needed
+// All balances are in native ZSNAIL tokens with 18 decimal places
 class ZSnailScanApp {
     constructor() {
         this.rpcURL = '/rpc';  // Use Netlify proxy endpoint
@@ -52,15 +54,41 @@ class ZSnailScanApp {
             // Static values for ZSnail network
             this.updateElement('consensus', 'Proof of Work');
             this.updateElement('totalBlocks', latestBlock.toLocaleString());
-            this.updateElement('totalSupply', 'Loading...');
-            this.updateElement('connectedWallets', 'N/A');
+            
+            // Get total supply by checking the balance of the zero address (total burned) and calculating circulating supply
+            try {
+                // ZSnail is the native token (like ETH), so calculate total supply based on blockchain economics
+                // Get total issued minus any burned tokens
+                const zeroAddress = '0x0000000000000000000000000000000000000000';
+                const burnedBalance = await this.rpcCall('eth_getBalance', [zeroAddress, 'latest']);
+                const burnedAmount = parseInt(burnedBalance, 16) / 1e18;
+                
+                // Estimate total issued based on block rewards (2 ZSNAIL per block as configured)
+                const totalIssued = latestBlock * 2;
+                const circulatingSupply = totalIssued - burnedAmount;
+                
+                this.updateElement('totalSupply', `${circulatingSupply.toLocaleString()} ZSNAIL (Native Token)`);
+            } catch (supplyError) {
+                // Fallback calculation if burn address query fails
+                const estimatedSupply = latestBlock * 2;
+                this.updateElement('totalSupply', `${estimatedSupply.toLocaleString()} ZSNAIL (Estimated)`);
+            }
+            
+            this.updateElement('connectedWallets', 'Active Network');
             
             const statusElement = document.getElementById('networkStatus');
             if (statusElement) {
                 statusElement.innerHTML = `<span class="network-indicator online"></span>Online`;
             }
         } catch (error) {
-            this.showError('Failed to connect to ZSnail L2 blockchain');
+            console.error('Network stats loading failed:', error);
+            this.showError('Unable to connect to ZSnail L2 blockchain. Please check network connection.');
+            
+            // Set offline status
+            const statusElement = document.getElementById('networkStatus');
+            if (statusElement) {
+                statusElement.innerHTML = `<span class="network-indicator offline"></span>Offline`;
+            }
         }
     }
 
@@ -132,28 +160,42 @@ class ZSnailScanApp {
             }).join('');
             
         } catch (error) {
+            console.error('Block loading failed:', error);
             const tbody = document.getElementById('latestBlocksTable');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load blocks</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Unable to load recent blocks. Blockchain may be starting up.
+                        </td>
+                    </tr>
+                `;
             }
         }
     }
 
     async performSearch() {
         const query = document.getElementById('searchInput').value.trim();
-        if (!query) return;
+        if (!query) {
+            this.showError('Please enter a search term (wallet address, block number, or transaction hash)');
+            return;
+        }
         
         this.showLoading();
         
         try {
             if (query.startsWith('0x') && query.length === 42) {
                 await this.searchWallet(query);
-            } else if (!isNaN(query)) {
+            } else if (!isNaN(query) && parseInt(query) >= 0) {
                 await this.searchBlock(parseInt(query));
             } else if (query.startsWith('0x') && query.length === 66) {
                 await this.searchTransaction(query);
             } else {
-                this.showError('Invalid search query. Please enter a wallet address, block number, or transaction hash.');
+                this.showError(`Invalid search format. Please enter:
+                • Wallet address (0x... 42 characters)
+                • Block number (positive integer)
+                • Transaction hash (0x... 66 characters)`);
             }
         } catch (error) {
             this.showError('Search failed: ' + error.message);
@@ -164,11 +206,11 @@ class ZSnailScanApp {
 
     async searchWallet(address) {
         try {
-            // Get balance using JSON-RPC
+            // Get balance using JSON-RPC (ZSnail is the native token like ETH)
             const balance = await this.rpcCall('eth_getBalance', [address, 'latest']);
             const nonce = await this.rpcCall('eth_getTransactionCount', [address, 'latest']);
             
-            // Convert balance from wei to ZSNAIL (assuming 18 decimals)
+            // Convert balance from wei to ZSNAIL (18 decimals, native token)
             const balanceInZSnail = parseInt(balance, 16) / 1e18;
             
             this.displayResult({
@@ -178,8 +220,8 @@ class ZSnailScanApp {
                     { label: 'Address', value: address },
                     { label: 'Balance', value: `${balanceInZSnail.toLocaleString()} ZSNAIL` },
                     { label: 'Nonce', value: parseInt(nonce, 16) },
-                    { label: 'Type', value: 'Standard' },
-                    { label: 'Network', value: 'ZSnail L2' }
+                    { label: 'Token Type', value: 'Native ZSnail (no contract address)' },
+                    { label: 'Network', value: 'ZSnail L2 Blockchain' }
                 ]
             });
         } catch (error) {
