@@ -1,0 +1,31 @@
+{
+  "name": "zsnailscan",
+  "version": "1.0.0",
+  "description": "ZSnail L2 Blockchain Explorer - Search wallets, transactions, and blocks",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "build": "webpack --mode production",
+    "test": "jest"
+  },
+  "keywords": ["blockchain", "explorer", "zsnail", "l2", "ethereum"],
+  "author": "ZSnail L2 Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.8.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.8.0",
+    "web3": "^4.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  }
+}

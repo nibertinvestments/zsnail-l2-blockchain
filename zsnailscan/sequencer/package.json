@@ -1,0 +1,23 @@
+{
+  "name": "zsnail-sequencer",
+  "version": "1.0.0",
+  "description": "ZSnail L2 Blockchain Sequencer",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "blockchain",
+    "sequencer",
+    "zsnail",
+    "l2"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}
