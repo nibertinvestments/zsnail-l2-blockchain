@@ -10,7 +10,11 @@
   to = "http://34.122.156.185:8545"
   status = 200
   force = true
-  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [[headers]]
   for = "/*"
@@ -21,7 +25,7 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
 
 [[headers]]
-  for = "/api/*"
+  for = "/rpc"
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
